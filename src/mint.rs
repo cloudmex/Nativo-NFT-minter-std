@@ -5,12 +5,14 @@ impl Contract {
     #[payable]
     pub fn nft_mint(
         &mut self,
-        token_id: TokenId,
         metadata: TokenMetadata,
         receiver_id: AccountId,
         //we add an optional parameter for perpetual royalties
         perpetual_royalties: Option<HashMap<AccountId, u32>>,
     ) {
+        assert_eq!(self.status_minter, true, "The mint of NFTs is unavailable");
+        let id: u64 = self.token_metadata_by_id.len()+1;
+        let token_id: String = id.to_string();
         //measure the initial storage being used on the contract
         let initial_storage_usage = env::storage_usage();
 
