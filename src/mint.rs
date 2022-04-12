@@ -33,9 +33,11 @@ impl Contract {
         //specify the token struct that contains the owner ID 
         let token = Token {
             //set the owner ID equal to the receiver ID passed into the function
-            owner_id: receiver_id,
+            owner_id: receiver_id.clone(),
             //we set the approved account IDs to the default value (an empty map)
             approved_account_ids: Default::default(),
+            //set the creator ID equal to the receiver ID passed into the function
+            creator_id: receiver_id.clone(),
             //the next approval ID is set to 0
             next_approval_id: 0,
             //the map of perpetual royalties for the token (The owner will get 100% - total perpetual royalties)
@@ -50,6 +52,9 @@ impl Contract {
 
         //insert the token ID and metadata
         self.token_metadata_by_id.insert(&token_id, &metadata);
+
+        //call the internal method for adding the token to the creator
+        self.internal_add_token_to_creator(&token.owner_id, &token_id);
 
         //call the internal method for adding the token to the owner
         self.internal_add_token_to_owner(&token.owner_id, &token_id);

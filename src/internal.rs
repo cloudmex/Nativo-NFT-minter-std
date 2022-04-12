@@ -137,6 +137,32 @@ impl Contract {
         }
     }
 
+    //add a token to the set of tokens an creator has
+    pub(crate) fn internal_add_token_to_creator(
+        &mut self,
+        account_id: &AccountId,
+        token_id: &TokenId,
+    ) {
+        //get the set of tokens for the given account
+        let mut tokens_set = self.tokens_per_creator.get(account_id).unwrap_or_else(|| {
+            //if the account doesn't have any tokens, we create a new unordered set
+            UnorderedSet::new(
+                StorageKey::TokenPerCreatorInner {
+                    //we get a new unique prefix for the collection
+                    account_id_hash: hash_account_id(&account_id),
+                }
+                .try_to_vec()
+                .unwrap(),
+            )
+        });
+
+        //we insert the token ID into the set
+        tokens_set.insert(token_id);
+
+        //we insert that set for the given account ID. 
+        self.tokens_per_creator.insert(account_id, &tokens_set);
+    }
+
     //transfers the NFT to the receiver_id (internal method and can't be called directly via CLI).
     pub(crate) fn internal_transfer(
         &mut self,
@@ -191,6 +217,7 @@ impl Contract {
             owner_id: receiver_id.clone(),
             //reset the approval account IDs
             approved_account_ids: Default::default(),
+            creator_id: token.creator_id.clone(),
             next_approval_id: token.next_approval_id,
             //we copy over the royalties from the previous token
             royalty: token.royalty.clone(),
