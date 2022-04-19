@@ -14,7 +14,7 @@ impl Contract {
         let start = u128::from(from_index.unwrap_or(U128(0)));
 
         //iterate through each token using an iterator
-        self.token_metadata_by_id.keys()
+        self.token_metadata_by_id.keys_as_vector().iter()
             //skip to the index we specified in the start variable
             .skip(start as usize) 
             //take the first "limit" elements in the vector. If we didn't specify a limit, use 50
