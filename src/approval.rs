@@ -33,6 +33,13 @@ trait NonFungibleTokenApprovalsReceiver {
         approval_id: u64,
         msg: String,
     );
+
+    //cross contract call to an external contract that is initiated during nft_approve
+    fn nft_on_revoke(
+        &mut self,
+        token_id: TokenId,
+        owner_id: AccountId,
+    );
 }
 
 #[near_bindgen]
@@ -82,7 +89,7 @@ impl NonFungibleTokenCore for Contract {
         self.tokens_by_id.insert(&token_id, &token);
 
         //refund any excess storage attached by the user. If the user didn't attach enough, panic. 
-        refund_deposit(storage_used);
+        //refund_deposit(storage_used);
 
         //if some message was passed into the function, we initiate a cross contract call on the
         //account we're giving access to. 
@@ -93,7 +100,7 @@ impl NonFungibleTokenCore for Contract {
                 approval_id,
                 msg,
                 account_id, //contract account we're calling
-                100000000000000000000000, //NEAR deposit we attach to the call
+                env::attached_deposit(), //NEAR deposit we attach to the call
                 env::prepaid_gas() - GAS_FOR_NFT_APPROVE, //GAS we're attaching
             )
             .as_return(); // Returning this promise
@@ -148,10 +155,19 @@ impl NonFungibleTokenCore for Contract {
             .is_some()
         {
             //refund the funds released by removing the approved_account_id to the caller of the function
-            refund_approved_account_ids_iter(predecessor_account_id, [account_id].iter());
+            refund_approved_account_ids_iter(predecessor_account_id, [account_id.clone()].iter());
 
             //insert the token back into the tokens_by_id collection with the account_id removed from the approval list
             self.tokens_by_id.insert(&token_id, &token);
+
+            ext_non_fungible_approval_receiver::nft_on_revoke(
+                token_id,
+                token.owner_id,
+                account_id, //contract account we're calling
+                100000000000000000000000, //NEAR deposit we attach to the call
+                env::prepaid_gas() - GAS_FOR_NFT_APPROVE, //GAS we're attaching
+            )
+            .as_return(); // Returning this promise
         }
     }
 
