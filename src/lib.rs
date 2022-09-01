@@ -168,7 +168,11 @@ impl Contract {
         self.status_minter=new_status;
         env::log_str(&self.status_minter.to_string());
     }
-    
+    //Update on every deployment on mainnet of the contract.
+    pub fn get_contract_version(&self,) {
+        // Format is date - number of revision
+        env::log_str("Last version was updated on 2022/9/1 - Rev 2");
+    }
     //Changing the owner_id
     pub fn get_owner_id(&self,) {
         // validate if the contract already exist,dont create a new one
