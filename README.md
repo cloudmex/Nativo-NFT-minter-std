@@ -12,13 +12,13 @@ Nativo NFT es un mercado secundario y primario de NFTs creado sobre NEAR Protoco
 ### Initialize Your Contract 
 
 ```=bash
-near call $NFT_CONTRACT_ID new_default_meta '{"owner_id": "'$NFT_CONTRACT_ID'"}' --accountId $NFT_CONTRACT_ID
+near call $CONTRACT new_default_meta '{"owner_id": "'$CONTRACT'"}' --accountId $CONTRACT
 ```
 
 ### View Contracts Meta Data
 
 ```=bash
-near view $NFT_CONTRACT_ID nft_metadata
+near view $CONTRACT nft_metadata
 ```
 ### Minting Token
 

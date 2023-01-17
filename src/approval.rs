@@ -76,7 +76,7 @@ impl NonFungibleTokenCore for Contract {
             .is_none();
 
         //if it was a new approval, we need to calculate how much storage is being used to add the account.
-        let storage_used = if is_new_approval {
+        let _storage_used = if is_new_approval {
             bytes_for_approved_account_id(&account_id)
         //if it was not a new approval, we used no storage.
         } else {

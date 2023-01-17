@@ -1,5 +1,7 @@
 use crate::*;
-
+use near_sdk::{
+     serde_json::json,
+};
 #[near_bindgen]
 impl Contract {
     #[payable]
@@ -13,6 +15,9 @@ impl Contract {
         assert_eq!(self.status_minter, true, "The mint of NFTs is unavailable");
         let id: u64 = self.token_metadata_by_id.len()+1;
         let token_id: String = id.to_string();
+        let owner_id: AccountId=receiver_id.clone();
+        let creator_id: AccountId=receiver_id.clone();
+        let approved_account_ids=Default::default();
         //measure the initial storage being used on the contract
         let initial_storage_usage = env::storage_usage();
 
@@ -29,7 +34,7 @@ impl Contract {
                 royalty.insert(account, amount);
             }
         }
-
+        let royalty_copy=royalty.clone();
         //specify the token struct that contains the owner ID 
         let token = Token {
             //set the owner ID equal to the receiver ID passed into the function
@@ -51,7 +56,7 @@ impl Contract {
         );
 
         //insert the token ID and metadata
-        self.token_metadata_by_id.insert(&token_id, &metadata);
+        self.token_metadata_by_id.insert(&token_id, &metadata );
 
         //call the internal method for adding the token to the creator
         self.internal_add_token_to_creator(&token.owner_id, &token_id);
@@ -76,8 +81,33 @@ impl Contract {
             }]),
         };
 
+        let _data =JsonTokenLog {
+            token_id,
+            //owner of the token
+            owner_id,
+            //token metadata
+            metadata ,
+            //creator of the token
+            creator_id,
+            //list of approved account IDs that have access to transfer the token. This maps an account ID to an approval ID
+            approved_account_ids ,
+            //keep track of the royalty percentages for the token in a hash map
+            royalty:royalty_copy,
+            
+        };
+        
+
+        let formated_content=&json!({   
+            "standard": NFT_STANDARD_NAME.to_string(),
+            "version": NFT_METADATA_SPEC.to_string(),
+            "event":"NftMintInt",
+            "data": { "type": "NftMint","params": _data}
+         }).to_string(); 
+        //EMIT THE LOG
+        env::log_str(&format!("EVENT_JSON:{}",formated_content).to_string(), );
         // Log the serialized json.
         env::log_str(&nft_mint_log.to_string());
+        
 
         //calculate the required storage which was the used - initial
         let required_storage_in_bytes = env::storage_usage() - initial_storage_usage;

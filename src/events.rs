@@ -1,7 +1,11 @@
 use std::fmt;
 
 use near_sdk::serde::{Deserialize, Serialize};
-
+//pub type TokenId = String;
+use crate::TokenId;
+use crate::AccountId;
+use crate::TokenMetadata;
+use crate::HashMap;
 /// Enum that represents the data type of the EventLog.
 /// The enum can either be an NftMint or an NftTransfer.
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,6 +15,7 @@ use near_sdk::serde::{Deserialize, Serialize};
 #[non_exhaustive]
 pub enum EventLogVariant {
     NftMint(Vec<NftMintLog>),
+    NftMintInt(Vec<JsonTokenLog>),
     NftTransfer(Vec<NftTransferLog>),
 }
 
@@ -76,6 +81,24 @@ pub struct NftTransferLog {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub memo: Option<String>,
+}
+
+//The Json token is what will be returned from view calls. 
+#[derive(Serialize, Deserialize,Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonTokenLog {
+    //token ID
+    pub token_id: TokenId,
+    //owner of the token
+    pub owner_id: AccountId,
+    //token metadata
+    pub metadata: TokenMetadata,
+    //creator of the token
+    pub creator_id: AccountId,
+    //list of approved account IDs that have access to transfer the token. This maps an account ID to an approval ID
+    pub approved_account_ids: HashMap<AccountId, u64>,
+    //keep track of the royalty percentages for the token in a hash map
+    pub royalty: HashMap<AccountId, u32>,
 }
 
 #[cfg(test)]
